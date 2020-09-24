@@ -37,8 +37,8 @@ def main():
     parser.add_argument('--mask_dir', default='masks', help='Directory for storing optional masks')
     parser.add_argument('--load_last', default='', help='Start with embeddings from directory')
     parser.add_argument('--dlatent_avg', default='', help='Use dlatent from file specified here for truncation instead of dlatent_avg from Gs')
-    parser.add_argument('--model_url', default='https://drive.google.com/uc?id=1MEGjdvVpUsu1jB4zrXZN7Y4kBBOzizDQ', help='Fetch a StyleGAN model to train on from this URL') # karras2019stylegan-ffhq-1024x1024.pkl
-    parser.add_argument('--model_res', default=1024, help='The dimension of images in the StyleGAN model', type=int)
+    parser.add_argument('--model_url', default='/content/LogoGAN/word_based.pkl', help='Fetch a StyleGAN model to train on from this URL')
+    parser.add_argument('--model_res', default=128, help='The dimension of images in the StyleGAN model', type=int)
     parser.add_argument('--batch_size', default=1, help='Batch size for generator and perceptual model', type=int)
     parser.add_argument('--optimizer', default='ggt', help='Optimization algorithm used for optimizing dlatents')
 
@@ -47,7 +47,7 @@ def main():
     parser.add_argument('--resnet_image_size', default=256, help='Size of images for the Resnet model', type=int)
     parser.add_argument('--lr', default=0.25, help='Learning rate for perceptual model', type=float)
     parser.add_argument('--decay_rate', default=0.9, help='Decay rate for learning rate', type=float)
-    parser.add_argument('--iterations', default=100, help='Number of optimization steps for each batch', type=int)
+    parser.add_argument('--iterations', default=1000, help='Number of optimization steps for each batch', type=int)
     parser.add_argument('--decay_steps', default=4, help='Decay steps for learning rate decay (as a percent of iterations)', type=float)
     parser.add_argument('--early_stopping', default=True, help='Stop early once training stabilizes', type=str2bool, nargs='?', const=True)
     parser.add_argument('--early_stopping_threshold', default=0.5, help='Stop after this threshold has been reached', type=float)
@@ -84,10 +84,10 @@ def main():
 
     # Video params
     parser.add_argument('--video_dir', default='videos', help='Directory for storing training videos')
-    parser.add_argument('--output_video', default=False, help='Generate videos of the optimization process', type=bool)
+    parser.add_argument('--output_video', default=True, help='Generate videos of the optimization process', type=bool)
     parser.add_argument('--video_codec', default='MJPG', help='FOURCC-supported video codec name')
     parser.add_argument('--video_frame_rate', default=24, help='Video frames per second', type=int)
-    parser.add_argument('--video_size', default=512, help='Video size in pixels', type=int)
+    parser.add_argument('--video_size', default=128, help='Video size in pixels', type=int)
     parser.add_argument('--video_skip', default=1, help='Only write every n frames (1 = write every frame)', type=int)
 
     args, other_args = parser.parse_known_args()
@@ -121,7 +121,7 @@ def main():
 
     perc_model = None
     if (args.use_lpips_loss > 0.00000001):
-        with dnnlib.util.open_url('https://drive.google.com/uc?id=1N2-m9qszOeVC9Tq77WxsLnuWwOedQiD2', cache_dir=config.cache_dir) as f:
+        with dnnlib.util.open_url('/content/LogoGAN/vgg16_zhang_perceptual.pkl', cache_dir=config.cache_dir) as f:
             perc_model =  pickle.load(f)
     perceptual_model = PerceptualModel(args, perc_model=perc_model, batch_size=args.batch_size)
     perceptual_model.build_perceptual_model(generator, discriminator_network)
