@@ -9,16 +9,16 @@ def create_stub(name, batch_size):
     return tf.constant(0, dtype='float32', shape=(batch_size, 0))
 
 
-def create_variable_for_generator(name, batch_size, tiled_dlatent, model_scale=18, tile_size = 1):
+def create_variable_for_generator(name, batch_size, tiled_dlatent, model_scale=12, tile_size = 1):
     if tiled_dlatent:
         low_dim_dlatent = tf.get_variable('learnable_dlatents',
-            shape=(batch_size, tile_size, 512),
+            shape=(batch_size, tile_size, 128),
             dtype='float32',
             initializer=tf.initializers.random_normal())
         return tf.tile(low_dim_dlatent, [1, model_scale // tile_size, 1])
     else:
         return tf.get_variable('learnable_dlatents',
-            shape=(batch_size, model_scale, 512),
+            shape=(batch_size, model_scale, 128),
             dtype='float32',
             initializer=tf.initializers.random_normal())
 
@@ -27,17 +27,17 @@ class Generator:
     def __init__(self, model, batch_size, custom_input=None, clipping_threshold=2, tiled_dlatent=False, model_res=1024, randomize_noise=False):
         self.batch_size = batch_size
         self.tiled_dlatent=tiled_dlatent
-        self.model_scale = int(2*(math.log(model_res,2)-1)) # For example, 1024 -> 18
+        self.model_scale = 12
 
         if tiled_dlatent:
-            self.initial_dlatents = np.zeros((self.batch_size, 512))
-            model.components.synthesis.run(np.zeros((self.batch_size, self.model_scale, 512)),
+            self.initial_dlatents = np.zeros((self.batch_size, 1, 128))
+            model.components.synthesis.run(np.zeros((self.batch_size, self.model_scale, 128)),
                 randomize_noise=randomize_noise, minibatch_size=self.batch_size,
-                custom_inputs=[partial(create_variable_for_generator, batch_size=batch_size, tiled_dlatent=True),
+                custom_inputs=[partial(create_variable_for_generator, batch_size=batch_size, tiled_dlatent=True, model_scale=self.model_scale),
                                                 partial(create_stub, batch_size=batch_size)],
                 structure='fixed')
         else:
-            self.initial_dlatents = np.zeros((self.batch_size, self.model_scale, 512))
+            self.initial_dlatents = np.zeros((self.batch_size, self.model_scale, 128))
             if custom_input is not None:
                 model.components.synthesis.run(self.initial_dlatents,
                     randomize_noise=randomize_noise, minibatch_size=self.batch_size,
@@ -97,18 +97,18 @@ class Generator:
 
     def set_dlatents(self, dlatents):
         if self.tiled_dlatent:
-            if (dlatents.shape != (self.batch_size, 512)) and (dlatents.shape[1] != 512):
-                dlatents = np.mean(dlatents, axis=1)
-            if (dlatents.shape != (self.batch_size, 512)):
-                dlatents = np.vstack([dlatents, np.zeros((self.batch_size-dlatents.shape[0], 512))])
-            assert (dlatents.shape == (self.batch_size, 512))
+            if (dlatents.shape != (self.batch_size, 1, 128)) and (dlatents.shape[1] != 128):
+                dlatents = np.mean(dlatents, axis=1, keepdims=True)
+            if (dlatents.shape != (self.batch_size, 1, 128)):
+                dlatents = np.vstack([dlatents, np.zeros((self.batch_size-dlatents.shape[0], 1, 128))])
+            assert (dlatents.shape == (self.batch_size, 1, 128))
         else:
             if (dlatents.shape[1] > self.model_scale):
                 dlatents = dlatents[:,:self.model_scale,:]
             if (isinstance(dlatents.shape[0], int)):
-                if (dlatents.shape != (self.batch_size, self.model_scale, 512)):
-                    dlatents = np.vstack([dlatents, np.zeros((self.batch_size-dlatents.shape[0], self.model_scale, 512))])
-                assert (dlatents.shape == (self.batch_size, self.model_scale, 512))
+                if (dlatents.shape != (self.batch_size, self.model_scale, 128)):
+                    dlatents = np.vstack([dlatents, np.zeros((self.batch_size-dlatents.shape[0], self.model_scale, 128))])
+                assert (dlatents.shape == (self.batch_size, self.model_scale, 128))
                 self.sess.run([self._assign_dlantent], {self._assign_dlatent_ph: dlatents})
                 return
             else:
