@@ -111,6 +111,9 @@ class PerceptualModel:
         if self.face_mask:
             import dlib
             self.detector = dlib.get_frontal_face_detector()
+            #LANDMARKS_MODEL_URL = 'http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2'
+            #landmarks_model_path = unpack_bz2(get_file('shape_predictor_68_face_landmarks.dat.bz2',
+                                                    #LANDMARKS_MODEL_URL, cache_subdir='temp'))
             landmarks_model_path = unpack_bz2('/content/LogoGAN/shape_predictor_68_face_landmarks.dat.bz2')
             self.predictor = dlib.shape_predictor(landmarks_model_path)
 
@@ -146,7 +149,7 @@ class PerceptualModel:
         self.add_placeholder("ref_weight")
 
         if (self.vgg_loss is not None):
-            vgg16 = VGG16(include_top=False, weights='/content/LogoGAN/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5', input_shape=(self.img_size, self.img_size, 3))
+            vgg16 = VGG16(include_top=False, weights='/content/drive/My Drive/BabyGAN/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5', input_shape=(self.img_size, self.img_size, 3))
             self.perceptual_model = Model(vgg16.input, vgg16.layers[self.layer].output)
             generated_img_features = self.perceptual_model(preprocess_input(self.ref_weight * generated_image))
             self.ref_img_features = tf.get_variable('ref_img_features', shape=generated_img_features.shape,
