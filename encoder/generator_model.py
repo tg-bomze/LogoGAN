@@ -24,16 +24,16 @@ def create_variable_for_generator(name, batch_size, tiled_dlatent, model_scale=1
 
 
 class Generator:
-    def __init__(self, model, batch_size, custom_input=None, clipping_threshold=2, tiled_dlatent=False, model_res=1024, randomize_noise=False):
+    def __init__(self, model, batch_size, custom_input=None, clipping_threshold=2, tiled_dlatent=False, model_res=128, randomize_noise=False):
         self.batch_size = batch_size
         self.tiled_dlatent=tiled_dlatent
-        self.model_scale = 12
+        self.model_scale = int(2*(math.log(model_res,2)-1)) # For example, 128 -> 12
 
         if tiled_dlatent:
-            self.initial_dlatents = np.zeros((self.batch_size, 1, 128))
+            self.initial_dlatents = np.zeros((self.batch_size, 128))
             model.components.synthesis.run(np.zeros((self.batch_size, self.model_scale, 128)),
                 randomize_noise=randomize_noise, minibatch_size=self.batch_size,
-                custom_inputs=[partial(create_variable_for_generator, batch_size=batch_size, tiled_dlatent=True, model_scale=self.model_scale),
+                custom_inputs=[partial(create_variable_for_generator, batch_size=batch_size, tiled_dlatent=True),
                                                 partial(create_stub, batch_size=batch_size)],
                 structure='fixed')
         else:
@@ -97,11 +97,11 @@ class Generator:
 
     def set_dlatents(self, dlatents):
         if self.tiled_dlatent:
-            if (dlatents.shape != (self.batch_size, 1, 128)) and (dlatents.shape[1] != 128):
-                dlatents = np.mean(dlatents, axis=1, keepdims=True)
-            if (dlatents.shape != (self.batch_size, 1, 128)):
-                dlatents = np.vstack([dlatents, np.zeros((self.batch_size-dlatents.shape[0], 1, 128))])
-            assert (dlatents.shape == (self.batch_size, 1, 128))
+            if (dlatents.shape != (self.batch_size, 128)) and (dlatents.shape[1] != 128):
+                dlatents = np.mean(dlatents, axis=1)
+            if (dlatents.shape != (self.batch_size, 128)):
+                dlatents = np.vstack([dlatents, np.zeros((self.batch_size-dlatents.shape[0], 128))])
+            assert (dlatents.shape == (self.batch_size, 128))
         else:
             if (dlatents.shape[1] > self.model_scale):
                 dlatents = dlatents[:,:self.model_scale,:]
