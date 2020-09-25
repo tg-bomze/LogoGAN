@@ -37,7 +37,7 @@ def main():
     parser.add_argument('--mask_dir', default='masks', help='Directory for storing optional masks')
     parser.add_argument('--load_last', default='', help='Start with embeddings from directory')
     parser.add_argument('--dlatent_avg', default='', help='Use dlatent from file specified here for truncation instead of dlatent_avg from Gs')
-    parser.add_argument('--model_url', default='/content/LogoGAN/word_based.pkl', help='Fetch a StyleGAN model to train on from this URL')
+    parser.add_argument('--model_url', default='/content/LogoGAN/word_based.pkl', help='Fetch a StyleGAN model to train on from this URL') # karras2019stylegan-ffhq-1024x1024.pkl
     parser.add_argument('--model_res', default=128, help='The dimension of images in the StyleGAN model', type=int)
     parser.add_argument('--batch_size', default=1, help='Batch size for generator and perceptual model', type=int)
     parser.add_argument('--optimizer', default='ggt', help='Optimization algorithm used for optimizing dlatents')
@@ -76,15 +76,15 @@ def main():
 
     # Masking params
     parser.add_argument('--load_mask', default=False, help='Load segmentation masks', type=str2bool, nargs='?', const=True)
-    parser.add_argument('--face_mask', default=True, help='Generate a mask for predicting only the face area', type=str2bool, nargs='?', const=True)
-    parser.add_argument('--use_grabcut', default=True, help='Use grabcut algorithm on the face mask to better segment the foreground', type=str2bool, nargs='?', const=True)
+    parser.add_argument('--face_mask', default=False, help='Generate a mask for predicting only the face area', type=str2bool, nargs='?', const=True)
+    parser.add_argument('--use_grabcut', default=False, help='Use grabcut algorithm on the face mask to better segment the foreground', type=str2bool, nargs='?', const=True)
     parser.add_argument('--scale_mask', default=1.4, help='Look over a wider section of foreground for grabcut', type=float)
-    parser.add_argument('--composite_mask', default=True, help='Merge the unmasked area back into the generated image', type=str2bool, nargs='?', const=True)
+    parser.add_argument('--composite_mask', default=False, help='Merge the unmasked area back into the generated image', type=str2bool, nargs='?', const=True)
     parser.add_argument('--composite_blur', default=8, help='Size of blur filter to smoothly composite the images', type=int)
 
     # Video params
     parser.add_argument('--video_dir', default='videos', help='Directory for storing training videos')
-    parser.add_argument('--output_video', default=True, help='Generate videos of the optimization process', type=bool)
+    parser.add_argument('--output_video', default=False, help='Generate videos of the optimization process', type=bool)
     parser.add_argument('--video_codec', default='MJPG', help='FOURCC-supported video codec name')
     parser.add_argument('--video_frame_rate', default=24, help='Video frames per second', type=int)
     parser.add_argument('--video_size', default=128, help='Video size in pixels', type=int)
