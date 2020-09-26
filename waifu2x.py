@@ -34,6 +34,7 @@ def denoise_image(cfg, src, model):
 def upscale_image(cfg, src, scale_model, alpha_model=None):
     dst, alpha = split_alpha(src, scale_model)
     for i in range(int(np.ceil(np.log2(cfg.scale_ratio)))):
+        print(str(i+1)+' logos enchanced.')
         six.print_('2.0x scaling...', end=' ', flush=True)
         model = scale_model if i == 0 or alpha_model is None else alpha_model
         if model.inner_scale == 1:
